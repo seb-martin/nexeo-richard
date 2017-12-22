@@ -1,6 +1,5 @@
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 public class HelloAnnotation {
@@ -9,38 +8,63 @@ public class HelloAnnotation {
 
         Hello hello = new Hello();
 
+        // Warning "deprecation" à la compilation : appel d'une méthode annotée avec @Deprecated
+        boolean b1 = hello.deprecatedMethod();
+        assert b1;
+
+        // Pas de warning
+        boolean b2 = hello.deprecationWarningSuppressed();
+        assert b2;
+
+        // Pas de warning
+        @SuppressWarnings("deprecation")
+        boolean b3 = hello.deprecatedMethod();
+        assert b3;
+
+        // Warning "unchecked" à la compilation : le cast scabreux
+        List<String> l1 = hello.notGenericList();
+        assert l1 != null;
+
+        // Pas de warning
+        @SuppressWarnings("unchecked")
+        List<String> l2 = hello.notGenericList();
+        assert l2 != null;
+
+
         assert "hello".equals(hello.toString());
         assert "Helloooooo".equals(hello.toooooString());
 
-        // Warning "unchecked" à la compilation : le cast scabreux
-        // Warning "deprecation" à la compilation : appel d'une méthode annotée avec @Deprecated
-        List<String> helloList1 = (List<String>) hello.deprecatedHello();
+        Object o = new Hello();
 
-        assert helloList1 != null;
+        assert "hello".equals(o.toString());
 
-        // Ici, les warnings ne sont pas levés
-        @SuppressWarnings({"unchecked", "deprecation"})
-        List<String> helloList2 = (List<String>) hello.deprecatedHello();
+        // Erreur à la compilation
+        // assert "Helloooooo".equals(o.toooooString());
 
-        assert helloList1 == helloList2;
-        assert helloList1.toString().equals(helloList2.toString());
     }
 
 }
 
 class Hello {
 
-    private List<String> helloList = Arrays.asList("h", "e", "l", "l", "o");
-
     @Deprecated
-    public List deprecatedHello() {
+    public boolean deprecatedMethod() {
+        return true;
+    }
 
-        return helloList;
+    @SuppressWarnings("deprecation")
+    public boolean deprecationWarningSuppressed() {
+
+        return this.deprecatedMethod();
+    }
+
+    public List notGenericList() {
+        return new ArrayList<String>();
     }
 
     @Override // Réécrit la méthode Object.toString() : OK
     public String toString() {
-        return helloList.stream().collect(Collectors.joining(""));
+        return "hello";
     }
 
     // @Override // Si non commenté : Erreur à la compilation
